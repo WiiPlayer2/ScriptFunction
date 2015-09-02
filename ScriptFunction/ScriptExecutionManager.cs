@@ -25,6 +25,8 @@ namespace ScriptFunction
 
         public ScriptExecution MainExecution { get; private set; }
 
+        public bool KeepAsync { get; set; }
+
         public void Add(ScriptExecution execution)
         {
             lock (executions)
@@ -84,9 +86,13 @@ namespace ScriptFunction
 
                 if (!res)
                 {
-                    if (exec == MainExecution)
+                    if (exec == MainExecution && !KeepAsync)
                     {
                         Quit();
+                        return false;
+                    }
+                    else if(!executions.Any() && KeepAsync)
+                    {
                         return false;
                     }
                 }

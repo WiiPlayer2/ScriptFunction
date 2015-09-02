@@ -277,7 +277,7 @@ namespace ScriptFunction
                         if (newMacroLines != null)
                         {
                             macroLines.AddRange(newMacroLines);
-                            if(usedRegexs.Contains(usedRegex))
+                            if (usedRegexs.Contains(usedRegex))
                             {
                                 throw new InvalidOperationException(
                                     string.Format("Cyclic macro in code. Regex: {0}", usedRegex.ToString()));
@@ -293,7 +293,7 @@ namespace ScriptFunction
                                .Concat(userRegexActions)
                                .Select(o2 => new Tuple<Match, Func<Match, Instruction>>(o2.Key.Match(macroLine), o2.Value))
                                .FirstOrDefault(o2 => o2.Item1.Success);
-                            if(t == null)
+                            if (t == null)
                             {
                                 throw new InvalidOperationException(
                                     string.Format("Invalid command [#{2}: {0} / {1}]", macroLine, line.Trim(), i));
@@ -324,15 +324,17 @@ namespace ScriptFunction
             return d;
         }
 
-        public object Invoke(string txt, params object[] args)
+        public object Invoke(string txt, bool keepAsync = ScriptDelegate.DEFAULT_KEEP_ASYNC,
+            params object[] args)
         {
             var d = Create(txt);
-            return d.DynamicInvoke(args);
+            return d.DynamicInvoke(keepAsync, args);
         }
 
-        public T Invoke<T>(string txt, params object[] args)
+        public T Invoke<T>(string txt, bool keepAsync = ScriptDelegate.DEFAULT_KEEP_ASYNC,
+            params object[] args)
         {
-            return (T)Invoke(txt, args);
+            return (T)Invoke(txt, keepAsync, args);
         }
 
         public void ClearCache()

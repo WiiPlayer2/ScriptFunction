@@ -14,6 +14,8 @@ namespace ScriptFunction
 {
     public class ScriptDelegate
     {
+        internal const bool DEFAULT_KEEP_ASYNC = false;
+
         internal Dictionary<string, int> labelPositions;
         internal Instruction[] instructions;
 
@@ -31,7 +33,7 @@ namespace ScriptFunction
             }
         }
 
-        public object DynamicInvoke(params object[] args)
+        public object DynamicInvoke(bool keepAsync = DEFAULT_KEEP_ASYNC, params object[] args)
         {
 #if OLD_METHOD
             var env = new ScriptEnvironment(this, args);
@@ -68,6 +70,7 @@ namespace ScriptFunction
             return env.ReturnValue;
 #else
             var mgr = CreateExecutionManager(args);
+            mgr.KeepAsync = keepAsync;
             mgr.ScriptExecutionAdded += (sender, exec) =>
             {
                 var thread = new Thread(() =>
@@ -99,6 +102,26 @@ namespace ScriptFunction
 #endif
         }
 
+        public T DynamicInvoke<T>(bool keepAsync = DEFAULT_KEEP_ASYNC, params object[] args)
+        {
+            return (T)DynamicInvoke(keepAsync, args);
+        }
+
+        public object SyncDynamicInvoke(bool keepAsync = DEFAULT_KEEP_ASYNC, params object[] args)
+        {
+            var mgr = CreateExecutionManager(args);
+            mgr.KeepAsync = keepAsync;
+
+            while (mgr.Step()) { }
+
+            return mgr.MainExecution.Environment.ReturnValue;
+        }
+
+        public T SyncDynamicInvoke<T>(bool keepAsync = DEFAULT_KEEP_ASYNC, params object[] args)
+        {
+            return (T)SyncDynamicInvoke(keepAsync, args);
+        }
+
         private void HandleException(ScriptException e, ScriptEnvironment env)
         {
             if (env.TryLabel == null)
@@ -110,11 +133,6 @@ namespace ScriptFunction
             env.Push(e.InnerException);
             env.JumpToLabel(env.TryLabel);
             env.TryLabel = null;
-        }
-
-        public T DynamicInvoke<T>(params object[] args)
-        {
-            return (T)DynamicInvoke(args);
         }
 
         public ScriptExecutionManager CreateExecutionManager(params object[] args)
@@ -136,12 +154,12 @@ namespace ScriptFunction
 
         public Action<TIn> AsAction<TIn>()
         {
-            return a => DynamicInvoke(a);
+            return a => DynamicInvoke(false, a);
         }
 
         public Action<T1, T2> AsAction<T1, T2>()
         {
-            return (a, b) => DynamicInvoke(a, b);
+            return (a, b) => DynamicInvoke(false, a, b);
         }
         #endregion
 
@@ -153,12 +171,12 @@ namespace ScriptFunction
 
         public Func<TIn, TOut> AsFunc<TIn, TOut>()
         {
-            return a => DynamicInvoke<TOut>(a);
+            return a => DynamicInvoke<TOut>(false, a);
         }
 
         public Func<T1, T2, TOut> AsFunc<T1, T2, TOut>()
         {
-            return (a, b) => DynamicInvoke<TOut>(a, b);
+            return (a, b) => DynamicInvoke<TOut>(false, a, b);
         }
         #endregion
     }

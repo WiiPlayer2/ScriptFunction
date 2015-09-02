@@ -91,7 +91,7 @@ throw
 ret
 
 lbl catch
-println").DynamicInvoke("Test!");
+println").DynamicInvoke(args: "Test!");
             }
             catch (Exception e)
             {
@@ -130,7 +130,7 @@ jmp loop
 
 lbl catch
 println
-").DynamicInvoke(typeof(TcpListener));
+").DynamicInvoke(args: typeof(TcpListener));
 
             Console.ReadKey(true);
         }

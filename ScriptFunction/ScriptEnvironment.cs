@@ -121,6 +121,13 @@ namespace ScriptFunction
 
         public string TryLabel { get; set; }
 
+        public object SpecialArgument { get; set; }
+
+        public T GetSpecialArgument<T>()
+        {
+            return (T)SpecialArgument;
+        }
+
         public ScriptEnvironment Split()
         {
             var env = new ScriptEnvironment(Delegate, args);
